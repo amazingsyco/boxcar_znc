@@ -27,11 +27,11 @@ Help:
   *boxcar: STATUS - current status
   *boxcar: ACTIVATE - activate boxcar notifications
   *boxcar: DEACTIVATE - turn boxcar notifications off
+  *boxcar: TEST - sends a test notification
   
 == How it works
 
-If you set your Boxcar email and password, and activate notifications, whenever you receive a private message it will be pushed to Boxcar.
-  
+If you set your Boxcar email and password, and activate notifications, whenever you receive a private message or a public message with your username, it will be pushed to Boxcar.
 
 == TODO
 
