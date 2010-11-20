@@ -77,8 +77,7 @@ public:
 	
 	bool testMessageForHighlights(const char *msg){
 		CString msgString(msg);
-//		CString nick = m_pUser->GetIRCNick().GetNick();
-		CString nick("sstreza");
+		CString nick = m_pUser->GetIRCNick().GetNick();
 		bool tested = (!nick.empty() && (
 			msgString.Equals(nick + " ", false, nick.length() +1)
 			|| msgString.Right(nick.length() +1).Equals(" " + nick)
