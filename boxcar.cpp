@@ -2,6 +2,7 @@
 #include <Nick.h>
 #include <Modules.h>
 #include <User.h>
+#include <Chan.h>
 #include <FileUtils.h>
 #include <curl/curl.h>
 
@@ -63,8 +64,33 @@ public:
     
     virtual ~CBoxcarMod() { }
     
-    void sendNotification(const char *from, const char *msg) {
-      if(!accountSetup() || !m_active) return;
+    void sendPMNotification(const char *from, const char *msg) {
+		sendNotification(from, msg);
+//		PutModule("Sent a private notification to Boxcar");	
+	}
+	
+	void sendChatNotification(const char *from, const char *msg, const char *channel){
+		CString message(CString("") + msg + " (" + channel + ")");
+		sendNotification(from, message.c_str());
+//		PutModule("Sent a chat notification to Boxcar");	
+	}
+	
+	bool testMessageForHighlights(const char *msg){
+		CString msgString(msg);
+//		CString nick = m_pUser->GetIRCNick().GetNick();
+		CString nick("sstreza");
+		bool tested = (!nick.empty() && (
+			msgString.Equals(nick + " ", false, nick.length() +1)
+			|| msgString.Right(nick.length() +1).Equals(" " + nick)
+			|| msgString.AsLower().WildCmp(nick.AsLower())
+			|| (nick.find_first_of("*?") != CString::npos && msgString.AsLower().WildCmp(nick.AsLower()))
+		));
+//		PutModule((CString("") + "Testing for '" + nick + "' in message '" + msgString + "': " + (tested ? "true" : "false")).c_str());
+		return tested;
+	}
+	
+	void sendNotification(const char *from, const char *msg){
+      if(!accountSetup() || !m_active || m_pUser->IsUserAttached()) return;
       
       CString auth(m_apiEmail + ":" + m_apiPassword);
       CURL *curl = curl_easy_init();
@@ -151,7 +177,7 @@ public:
         writePreferences();
       }
       else if(sCommand.Token(0).Equals("TEST")) {
-	sendNotification("*boxcar", "This is a push notification test.");
+	sendPMNotification("*boxcar", "This is a push notification test.");
 	PutModule("Sent a test notification to Boxcar");	
       }
       else {
@@ -160,8 +186,27 @@ public:
     }
     
     virtual EModRet OnPrivMsg(CNick &Nick,CString &sMessage) {
-      sendNotification(Nick.GetNick().c_str(), sMessage.c_str());
+      sendPMNotification(Nick.GetNick().c_str(), sMessage.c_str());
       return CONTINUE;
+    }
+
+	virtual EModRet OnPrivNotice(CNick& Nick, CString& sMessage) {
+ 		sendPMNotification(Nick.GetNick().c_str(), sMessage.c_str());
+                return CONTINUE;
+    }
+
+    virtual EModRet OnChanNotice(CNick& Nick, CChan& Channel, CString& sMessage) {
+		if(testMessageForHighlights(sMessage.c_str())){
+			sendChatNotification(Nick.GetNick().c_str(), sMessage.c_str(), Channel.GetName().c_str());
+		}
+        return CONTINUE;
+    }
+    
+    virtual EModRet OnChanMsg(CNick& Nick, CChan& Channel, CString& sMessage) {
+		if(testMessageForHighlights(sMessage.c_str())){
+			sendChatNotification(Nick.GetNick().c_str(), sMessage.c_str(), Channel.GetName().c_str());
+		}
+        return CONTINUE;
     }
 };
 
