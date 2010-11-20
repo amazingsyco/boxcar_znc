@@ -114,6 +114,7 @@ public:
         PutModule("Commands:\n");
         PutModule("SET email_address password - Sets your email and password for the Boxcar API. (required)");
         PutModule("STATUS - current status");
+	PutModule("TEST - sends a test notification");
         PutModule("ACTIVATE - activate boxcar notifications");
         PutModule("DEACTIVATE - turn boxcar notifications off");
       }
@@ -148,6 +149,10 @@ public:
         m_active = false;
         PutModule("Notifications are disabled.");
         writePreferences();
+      }
+      else if(sCommand.Token(0).Equals("TEST")) {
+	sendNotification("*boxcar", "This is a push notification test.");
+	PutModule("Sent a test notification to Boxcar");	
       }
       else {
         PutModule("Invalid command. Try HELP for more information.");
